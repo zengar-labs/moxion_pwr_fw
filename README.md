@@ -49,4 +49,10 @@ void run_test_demo_code(VoltageSensorInterface& temp_sensor_raw, GpioOutputInter
 1. Please implement `FanController` to the requirements above
 2. Please write unit tests for your `FanController` class, test for failure modes!
 3. Feel free to reach out to ask for questions or clarifications
-4. Expect to present your solution to the MoxionPower team
+
+# Assessment of submissions
+
+Your work will be assessed on the following criteria:
+1. Completeness and correctness of requirements implementation
+2. Adherence to effective design principles and coding standards
+3. Unit test coverage, and consideration of potential failure modes
