@@ -6,7 +6,7 @@ MoxionPower has a lot of cooling fans in our system. Your task today is to imple
 This GPIO enable line controls the power supply for our temperature sensor. It must be enabled for our temperature sensor to provide valid measurements. The sensor power supply takes 5 seconds to stabilize after a rising edge on the enable line. Control of this signal code is provided via the `GpioOutputInterface& sensor_power_enable` object.
 
 ## Temperature Sensor
-An Analog Devices AD22100 temperature sensor is used by our system to sense the voltage of our inverter. The datasheet for this sensor is included. We are powering the sensor using a 5V supply voltage. Your code will be passed a `VoltageSensorInterface& temp_sensor_raw` reference that can be used to get the raw value of the voltage input. You will need the datasheet to convert voltage readings to usable values.
+An Analog Devices AD22100 temperature sensor is used by our system to sense the voltage of our inverter. The datasheet for this sensor is included. We are powering the sensor using a 5V supply voltage. Your code will be passed a `VoltageSensorInterface& temp_sensor_raw` reference that can be used to get the raw value of the voltage input. The datasheet will be required to parse usable temperature values.
 
 ## Fan Control Enable
 First there is a GPIO enable line that controls a relay powering the fans. When this output is low, power is cut to the fans and they will stop, drawing no system power. When this output is high, power will be supplied to the fans. Control of this signal code is provided via the `GpioOutputInterface& fan_relay_enable` object.
