@@ -20,9 +20,9 @@ When power is provided to the fans they will start turning. The speed the fans t
 3. The controller shall disable the fan control relay when the temperature measurement is below 50C.
 4. The controller shall implement the following table to determine output fan duty cycle to command at a given temperature.
 
-| Temperature (t) | PWM Output = f(t)        |
+| Temperature (t) | PWM Output = f(t)    |
 |-----------------|----------------------|
-| 60-99           | = (t-60) / 2       |
+| 50-99           | = (t-50) / 2         |
 | 100-129         | = (100 - t) * 2 + 20 |
 | 130-140         | = 90                 |
 | > 140           | = 100                |
