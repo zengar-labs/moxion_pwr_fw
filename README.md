@@ -23,7 +23,7 @@ When power is provided to the fans they will start turning. The speed the fans t
 | Temperature (t) | PWM Output = f(t)    |
 |-----------------|----------------------|
 | 50-99           | = (t-50) / 2         |
-| 100-129         | = (100 - t) * 2 + 20 |
+| 100-129         | = (t-98) * 2 + 20    |
 | 130-140         | = 90                 |
 | > 140           | = 100                |
 
