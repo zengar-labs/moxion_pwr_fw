@@ -34,6 +34,7 @@ void run_test_demo_code(VoltageSensorInterface& temp_sensor_raw,
     
         /** TODO: call FanController.loop(); **/
         controller.loop();
+        // A goo way to test is creating some MOCKS for the get Voltage in order to inject values  less than 0v, or more than supply voltage (error values). Then supply in range values and check if fan is enable and duty cycle.
      
         std::this_thread::sleep_for(std::chrono::milliseconds(500));  
     }
