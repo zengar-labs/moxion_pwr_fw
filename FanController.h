@@ -47,8 +47,8 @@ public:
       // TODO Call some fault handler maybe or diag
     }
 
-    // Calculate temperature using the transfer function
-    float temperature = (voltage / SensorSplyVol) * (SensorCoeffA + (SensorCoeffB / 1000.0f) * voltage);
+    // Calculate temperature using the proportional ratio function TODO: consider the calib of CoeffA.
+    float temperature = (voltage - SensorCoeffA) / SensorCoeffB;
 
   // Req 2. Implement a fan controller that will control the fan based on the temperature
 
@@ -80,12 +80,17 @@ private:
   bool _fan_enabled; // To know the status of the fan (relay)
 
   static constexpr float SensorMinVol = 0.25f;
-  static constexpr float SensorSplyVol = 5.0f;
-  static constexpr float SensorCoeffA = 1.375f;
-  static constexpr float SensorCoeffB = 22.5f;
+  static constexpr float SensorSplyVol = 5.0f-SensorMinVol;
+  static constexpr float SensorCoeffA = 1.375f; // <- Calib param
+  static constexpr float SensorCoeffB = 22.5f/1000.0f;
 
   static constexpr float FanOnTempThreshold = 60.0f;
   static constexpr float FanOffTempThreshold = 50.0f;
+
+  static constexpr float FanDCTempThreshold_off  = 50.0f;
+  static constexpr float FanDCTempThreshold_25dc = 100.0f;
+  static constexpr float FanDCTempThreshold_85dc = 130.0f;
+  static constexpr float FanDCTempThreshold_90dc = 140.0f;
 /**
  * @Transfer Function
   VOUT = (V+/5 V) × [1.375 V +(22.5 mV/°C) × TA] 
@@ -99,13 +104,13 @@ private:
  */
 
   float calculateFanDutyCycle(float temperature) {
-    if (temperature >= 50.0f && temperature < 100.0f) {
-      return (temperature - 50.0f) / 2.0f;
-    } else if (temperature >= 100.0f && temperature < 130.0f) {
-      return (temperature - 98.0f) * 2.0f + 20.0f;
-    } else if (temperature >= 130.0f && temperature <= 140.0f) {
+    if (temperature >= FanDCTempThreshold_off && temperature < FanDCTempThreshold_25dc) {
+      return (temperature - 50.0f) / 2.0f; //0-25%
+    } else if (temperature >= FanDCTempThreshold_25dc && temperature < FanDCTempThreshold_85dc) {
+      return (temperature - 98.0f) * 2.0f + 20.0f; //24~84%
+    } else if (temperature >= FanDCTempThreshold_85dc && temperature <= FanDCTempThreshold_90dc) {
       return 90.0f;
-    } else if (temperature > 140.0f) {
+    } else if (temperature > FanDCTempThreshold_90dc) {
       return 100.0f;
     } else {
       // Default duty for anything belowr 50c
