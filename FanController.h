@@ -21,18 +21,20 @@ public:
    */
   void init() {
     // run some initialization code here ex diagnostigs for the relays, etc.
-  };
-
-  /**
-   * @brief Periodic loop method that will be called every 500ms
-   */
-  void loop() {
     // Enable sensor power
     _sensor_power_enable.setOutput(true);
     
     // Req 1. Wait for 5 seconds for sensor stabilization
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
+    // Todo diag on relays.
+  };
+
+  /**
+   * @brief Periodic loop method that will be called every 500ms
+   */
+  void loop() {
+    
     // Read temperature sensor voltage (in raw val)
     float voltage = _temp_sensor_raw.getVoltage();
 
