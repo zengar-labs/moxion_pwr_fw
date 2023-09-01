@@ -36,6 +36,15 @@ public:
     // Read temperature sensor voltage (in raw val)
     float voltage = _temp_sensor_raw.getVoltage();
 
+    if ((voltage < SensorMinVol) || (voltage > SensorSplyVol)) {
+      // SATURATE to MIX or MAX
+      if (voltage < SensorMinVol)
+        voltage = SensorMinVol;
+      else
+        voltage = SensorSplyVol;
+      // TODO Call some fault handler maybe or diag
+    }
+
     // Calculate temperature using the transfer function
     float temperature = (voltage / SensorSplyVol) * (SensorCoeffA + (SensorCoeffB / 1000.0f) * voltage);
 
@@ -68,6 +77,7 @@ private:
   PwmOutputInterface&     _fan_output_spd;
   bool _fan_enabled; // To know the status of the fan (relay)
 
+  static constexpr float SensorMinVol = 0.25f;
   static constexpr float SensorSplyVol = 5.0f;
   static constexpr float SensorCoeffA = 1.375f;
   static constexpr float SensorCoeffB = 22.5f;
