@@ -1,16 +1,17 @@
 #pragma once
 
 #include "Drivers.h"
+#include "TemperatureSensor.h"
 /**
  * @brief Example FanController base
  */
 class FanController {
 public:
-  FanController(VoltageSensorInterface& temp_sensor_raw, /*voltage in raw val*/
+  FanController(TemperatureSensor& temperatureSensor,    /*Temperature from Inverter*/
                 GpioOutputInterface& sensor_power_enable,/*pwr spply to Sensor*/
                 GpioOutputInterface& fan_relay_enable,   /*Relay Ctrl to fan*/
                 PwmOutputInterface& fan_output_spd)      /* Fan Speed Ctl */
-    : _temp_sensor_raw(temp_sensor_raw),
+    : _temperature_inverter(temperatureSensor),
       _sensor_power_enable(sensor_power_enable),
       _fan_relay_enable(fan_relay_enable),
       _fan_output_spd(fan_output_spd),
@@ -35,35 +36,13 @@ public:
    */
   void loop() {
     
-    // Read temperature sensor voltage (in raw val)
-    float voltage = _temp_sensor_raw.getVoltage();
+    // Read temperature sensor from Inverter (Inputs)
+    float temperature = _temperature_inverter.getTemperature();
 
-    if ((voltage < SensorMinVol) || (voltage > SensorSplyVol)) {
-      // SATURATE to MIX or MAX
-      if (voltage < SensorMinVol)
-        voltage = SensorMinVol;
-      else
-        voltage = SensorSplyVol;
-      // TODO Call some fault handler maybe or diag
-    }
+    // Req 2 and 3 Implement a fan controller that will control the fan relay based on the temperature (Outputs)
+    fanRelayControl(temperature);
 
-    // Calculate temperature using the proportional ratio function TODO: consider the calib of CoeffA.
-    float temperature = (voltage - SensorCoeffA) / SensorCoeffB;
-
-  // Req 2. Implement a fan controller that will control the fan based on the temperature
-
-    // Check temperature conditions and control the fan
-    if (temperature > FanOnTempThreshold && !_fan_enabled) {
-      // Enable the fan relay
-      _fan_relay_enable.setOutput(true);
-      _fan_enabled = true; // Update the fan enabled flag
-    } else if (temperature < FanOffTempThreshold && _fan_enabled) {
-      // Disable the fan relay
-      _fan_relay_enable.setOutput(false);
-      _fan_enabled = false;
-    }
-
-    if (_fan_enabled) {// If fan controller is on then control the speed
+    if (_fan_enabled) {
       // Calculate fan PWM duty cycle based on temperature
       float pwmDutyCycle = calculateFanDutyCycle(temperature);
 
@@ -73,24 +52,19 @@ public:
   }
 
 private:
-  VoltageSensorInterface& _temp_sensor_raw;
-  GpioOutputInterface&    _sensor_power_enable;
-  GpioOutputInterface&    _fan_relay_enable;
-  PwmOutputInterface&     _fan_output_spd;
+  TemperatureSensor&   _temperature_inverter;
+  GpioOutputInterface& _sensor_power_enable;
+  GpioOutputInterface& _fan_relay_enable;
+  PwmOutputInterface&  _fan_output_spd;
   bool _fan_enabled; // To know the status of the fan (relay)
 
-  static constexpr float SensorMinVol = 0.25f;
-  static constexpr float SensorSplyVol = 5.0f-SensorMinVol;
-  static constexpr float SensorCoeffA = 1.375f; // <- Calib param
-  static constexpr float SensorCoeffB = 22.5f/1000.0f;
+  static constexpr float FanOnTempThreshold{60.0f};
+  static constexpr float FanOffTempThreshold{50.0f};
 
-  static constexpr float FanOnTempThreshold = 60.0f;
-  static constexpr float FanOffTempThreshold = 50.0f;
-
-  static constexpr float FanDCTempThreshold_off  = 50.0f;
-  static constexpr float FanDCTempThreshold_25dc = 100.0f;
-  static constexpr float FanDCTempThreshold_85dc = 130.0f;
-  static constexpr float FanDCTempThreshold_90dc = 140.0f;
+  static constexpr float FanDCTempThreshold_off {50.0f};
+  static constexpr float FanDCTempThreshold_25dc{100.0f};
+  static constexpr float FanDCTempThreshold_85dc{130.0f};
+  static constexpr float FanDCTempThreshold_90dc{140.0f};
 /**
  * @Transfer Function
   VOUT = (V+/5 V) × [1.375 V +(22.5 mV/°C) × TA] 
@@ -113,8 +87,22 @@ private:
     } else if (temperature > FanDCTempThreshold_90dc) {
       return 100.0f;
     } else {
-      // Default duty for anything belowr 50c
+      // Default duty for anything below 50c
       return 0.0f;
+    }
+  }
+
+  void fanRelayControl(float temperature) {
+    //Req.2 The controller shall enable the fan control relay when the temperature measurement is above 60C.
+    if (temperature > FanOnTempThreshold && !_fan_enabled) {
+      // Enable the fan relay
+      _fan_relay_enable.setOutput(true);
+      _fan_enabled = true;
+    // Req 3. The controller shall disable the fan control relay when the temperature measurement is below 50C.
+    } else if (temperature < FanOffTempThreshold && _fan_enabled) {
+      // Disable the fan relay
+      _fan_relay_enable.setOutput(false);
+      _fan_enabled = false;
     }
   }
 };
